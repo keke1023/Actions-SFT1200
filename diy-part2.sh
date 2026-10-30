@@ -286,8 +286,6 @@ replace_dir feeds/PWpackages/microsocks       feeds/packages2/net/microsocks
 # ss-local / ss-redir / shadowsocks-libev-config。
 replace_dir feeds/helloworld/shadowsocks-libev feeds/packages/net/shadowsocks-libev
 
-# 保持较新的 Rust 工具链，以满足现代代理组件的编译要求。
-replace_dir feeds/packages2/lang/rust feeds/packages/lang/rust
 
 # Passwall 26.9.x 开始新增 lyaml 硬依赖，而原始 OpenWrt 18.06 packages 没有该包。
 # 从 packages2 引入 lyaml，同时去掉只服务现代 macOS Host 的 fakeuname 依赖，
