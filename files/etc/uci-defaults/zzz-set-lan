@@ -1,0 +1,9 @@
+#!/bin/sh
+# 自定义默认 LAN 地址（在 GL.iNet 默认值之后执行，覆盖其 192.168.8.1）
+# 仅首次开机执行一次（OpenWrt uci-defaults 机制）
+uci -q batch <<'EOF'
+set network.lan.ipaddr='192.168.6.1'
+set network.lan.netmask='255.255.255.0'
+commit network
+EOF
+exit 0

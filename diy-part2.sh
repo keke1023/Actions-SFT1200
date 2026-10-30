@@ -766,7 +766,7 @@ tar -C "$legacy_luci_tmp" -xzf "$legacy_luci_archive"
 legacy_luci_src="$(find "$legacy_luci_tmp" -mindepth 1 -maxdepth 1 -type d -print -quit)"
 [ -n "$legacy_luci_src" ] || die "旧版 LuCI 源码解压失败"
 
-for app in luci-app-zerotier luci-app-autoreboot; do
+for app in luci-app-autoreboot; do
   replace_dir "$legacy_luci_src/applications/$app" "package/$app"
 
   # 这两个历史快照使用 zh_Hans 目录；18.06 的 LuCI/Kconfig 使用 zh-cn。
@@ -789,12 +789,10 @@ tar -C "$legacy_packages_tmp" -xzf "$legacy_packages_archive"
 legacy_packages_src="$(find "$legacy_packages_tmp" -mindepth 1 -maxdepth 1 -type d -print -quit)"
 [ -n "$legacy_packages_src" ] || die "OpenWrt 18.06 兼容包源码解压失败"
 
-replace_dir "$legacy_packages_src/luci-app-adbyby-plus" package/luci-app-adbyby-plus
 replace_dir "$legacy_packages_src/luci-theme-argon-mod" package/luci-theme-argon-mod
 rm -rf "$legacy_packages_tmp"
 
 for makefile in \
-  package/luci-app-adbyby-plus/Makefile \
   package/luci-theme-argon-mod/Makefile; do
   sed -i '/luci\.mk$/c\include $(TOPDIR)/feeds/luci/luci.mk' "$makefile"
 done
@@ -803,28 +801,21 @@ record_fixed_upstream upstream_legacy_packages_1806_commit "$LEGACY_PACKAGES_180
 
 section "附加应用与构建工具"
 
-aliyun_tmp="$(mktemp -d)"
-git clone --depth=1 https://github.com/messense/aliyundrive-webdav.git "$aliyun_tmp"
-record_upstream upstream_aliyundrive_webdav_commit "$aliyun_tmp"
-replace_dir "$aliyun_tmp/openwrt/aliyundrive-webdav" feeds/packages2/multimedia/aliyundrive-webdav
-replace_dir "$aliyun_tmp/openwrt/luci-app-aliyundrive-webdav" package/luci-app-aliyundrive-webdav
-rm -rf package/luci-app-aliyundrive-webdav/po/zh_Hans
-sed -i '/luci\.mk$/c\include $(TOPDIR)/feeds/luci/luci.mk' \
-  package/luci-app-aliyundrive-webdav/Makefile
-rm -rf "$aliyun_tmp"
-
-# LEDE 这里只需要 ninja 和 adbyby 两个目录，使用 sparse checkout 避免拉完整工作树。
+# LEDE 这里只需要 ninja（部分包依赖其构建），使用 sparse checkout 避免拉完整工作树。
 lede_tmp="$(mktemp -d)"
 git clone --depth=1 --filter=blob:none --sparse https://github.com/coolsnowwolf/lede.git "$lede_tmp"
 record_upstream upstream_lede_commit "$lede_tmp"
-git -C "$lede_tmp" sparse-checkout set tools/ninja package/lean/adbyby
+git -C "$lede_tmp" sparse-checkout set tools/ninja
 replace_dir "$lede_tmp/tools/ninja" tools/ninja
-replace_dir "$lede_tmp/package/lean/adbyby" package/adbyby
 rm -rf "$lede_tmp"
 
-rm -rf package/luci-app-adguardhome
-git clone --depth=1 https://github.com/kongfl888/luci-app-adguardhome.git package/luci-app-adguardhome
-record_upstream upstream_luci_app_adguardhome_commit package/luci-app-adguardhome
+# ngrok 内网穿透：后端 ngrokc 二进制由 feeds 提供（CONFIG_PACKAGE_ngrokc），
+# 这里补入 LuCI 前端并接回 18.06 原生 Lua LuCI。
+rm -rf package/luci-app-ngrokc
+git clone --depth=1 https://github.com/AlexZhuo/luci-app-ngrokc.git package/luci-app-ngrokc
+record_upstream upstream_luci_app_ngrokc_commit package/luci-app-ngrokc
+sed -i '/luci\.mk$/c\include $(TOPDIR)/feeds/luci/luci.mk' \
+  package/luci-app-ngrokc/Makefile
 
 
 section "板级文件与本地兼容库"
@@ -946,18 +937,11 @@ for symbol in \
   PACKAGE_shadowsocks-libev-ss-redir \
   PACKAGE_trojan \
   PACKAGE_miniupnpd \
-  PACKAGE_zerotier \
-  PACKAGE_luci-app-zerotier \
-  PACKAGE_luci-i18n-zerotier-zh-cn \
-  PACKAGE_aliyundrive-webdav \
-  PACKAGE_luci-app-aliyundrive-webdav \
-  PACKAGE_luci-i18n-aliyundrive-webdav-zh-cn \
-  PACKAGE_adbyby \
-  PACKAGE_luci-app-adbyby-plus \
-  PACKAGE_luci-i18n-adbyby-plus-zh-cn \
   PACKAGE_luci-app-autoreboot \
   PACKAGE_luci-i18n-autoreboot-zh-cn \
   PACKAGE_luci-theme-argon-mod \
+  PACKAGE_ngrokc \
+  PACKAGE_luci-app-ngrokc \
   PACKAGE_dnsmasq-full \
   PACKAGE_dnsmasq_full_ipset \
   PACKAGE_ipset \
@@ -985,18 +969,11 @@ required_symbols=(
   PACKAGE_shadowsocks-libev-ss-redir
   PACKAGE_trojan
   PACKAGE_miniupnpd
-  PACKAGE_zerotier
-  PACKAGE_luci-app-zerotier
-  PACKAGE_luci-i18n-zerotier-zh-cn
-  PACKAGE_aliyundrive-webdav
-  PACKAGE_luci-app-aliyundrive-webdav
-  PACKAGE_luci-i18n-aliyundrive-webdav-zh-cn
-  PACKAGE_adbyby
-  PACKAGE_luci-app-adbyby-plus
-  PACKAGE_luci-i18n-adbyby-plus-zh-cn
   PACKAGE_luci-app-autoreboot
   PACKAGE_luci-i18n-autoreboot-zh-cn
   PACKAGE_luci-theme-argon-mod
+  PACKAGE_ngrokc
+  PACKAGE_luci-app-ngrokc
   PACKAGE_dnsmasq-full
   PACKAGE_dnsmasq_full_ipset
   PACKAGE_ipset
@@ -1056,9 +1033,8 @@ for upstream_key in \
   upstream_golang_commit \
   upstream_legacy_luci_commit \
   upstream_legacy_packages_1806_commit \
-  upstream_aliyundrive_webdav_commit \
   upstream_lede_commit \
-  upstream_luci_app_adguardhome_commit; do
+  upstream_luci_app_ngrokc_commit; do
   if [ "$upstream_key" = "upstream_meson_mk_sha256" ]; then
     grep -Eq "^${upstream_key}=[0-9a-f]{64}$" "$UPSTREAM_RECORD" ||
       die "Missing upstream trace record: $upstream_key"

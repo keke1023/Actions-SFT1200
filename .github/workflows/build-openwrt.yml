@@ -277,9 +277,7 @@ jobs:
                   "diy-part2 未校验并保留 meson.mk SHA256")
           for upstream_key in (
               "upstream_golang_commit",
-              "upstream_aliyundrive_webdav_commit",
               "upstream_lede_commit",
-              "upstream_luci_app_adguardhome_commit",
           ):
               require(upstream_key in diy2,
                       f"diy-part2 缺少动态上游记录：{upstream_key}")
@@ -995,20 +993,15 @@ jobs:
           shadowsocksr-libev-ssr-local
           shadowsocksr-libev-ssr-redir
           trojan
-          zerotier
-          luci-app-zerotier
-          luci-i18n-zerotier-zh-cn
           miniupnpd
           luci-app-upnp
-          aliyundrive-webdav
-          luci-app-aliyundrive-webdav
-          luci-i18n-aliyundrive-webdav-zh-cn
-          adbyby
-          luci-app-adbyby-plus
-          luci-i18n-adbyby-plus-zh-cn
           luci-app-autoreboot
           luci-i18n-autoreboot-zh-cn
           luci-theme-argon-mod
+          ngrokc
+          luci-app-ngrokc
+          frpc
+          luci-app-frpc
         )
 
         missing=0
