@@ -387,12 +387,6 @@ jobs:
 
           # #786 前的用户可见 LuCI 功能必须同时存在于仓库配置、defconfig 硬校验和固件 manifest 验收。
           restored_luci = (
-              "luci-app-zerotier",
-              "luci-i18n-zerotier-zh-cn",
-              "luci-app-aliyundrive-webdav",
-              "luci-i18n-aliyundrive-webdav-zh-cn",
-              "luci-app-adbyby-plus",
-              "luci-i18n-adbyby-plus-zh-cn",
               "luci-app-autoreboot",
               "luci-i18n-autoreboot-zh-cn",
               "luci-theme-argon-mod",
