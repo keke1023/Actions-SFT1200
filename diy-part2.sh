@@ -286,6 +286,31 @@ replace_dir feeds/PWpackages/microsocks       feeds/packages2/net/microsocks
 # ss-local / ss-redir / shadowsocks-libev-config。
 replace_dir feeds/helloworld/shadowsocks-libev feeds/packages/net/shadowsocks-libev
 
+# frp 的 web 控制台需要 node/host(npm) 构建，但 Node 8.10.0 无法在现在的 GitHub Runner 上编译，
+# 导致 package/feeds/packages/node/host/compile 失败（run 41002284396）。
+# 科科建议回退 0.52，但实测 0.52.3 同样要把 web 静态资源 embed 进二进制，照样需要 node。
+# frp 0.70.1 自带 noweb build tag（web/frpc/embed_stub.go: //go:build noweb），
+# 加 -tags noweb 即可跳过 web 资源嵌入，Go 二进制(frpc/frps)功能不受影响（frpc 客户端本就主要靠 CLI）。
+# 此处移除 node 依赖并改用 noweb 编译，避免使用 node/host。
+FRP_MK=feeds/packages2/net/frp/Makefile
+if [ -f "$FRP_MK" ]; then
+python3 - "$FRP_MK" <<'PY'
+import sys, re
+p = sys.argv[1]
+s = open(p).read()
+s = s.replace("PKG_BUILD_DEPENDS:=golang/host node/host",
+              "PKG_BUILD_DEPENDS:=golang/host")
+if "GO_PKG_TAGS:=noweb" not in s:
+    s = s.replace("PKG_BUILD_PARALLEL:=1",
+                  "PKG_BUILD_PARALLEL:=1\nGO_PKG_TAGS:=noweb")
+# 用纯 Go 编译替换掉 npm 构建块（避免拉起 node/host）
+s = re.sub(r"define Build/Compile.*?endef",
+            "define Build/Compile\n\t$(call GoPackage/Build/Compile)\nendef",
+            s, flags=re.S)
+open(p, "w").write(s)
+PY
+fi
+
 
 # Passwall 26.9.x 开始新增 lyaml 硬依赖，而原始 OpenWrt 18.06 packages 没有该包。
 # 从 packages2 引入 lyaml，同时去掉只服务现代 macOS Host 的 fakeuname 依赖，
