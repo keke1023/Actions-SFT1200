@@ -389,7 +389,6 @@ jobs:
           restored_luci = (
               "luci-app-autoreboot",
               "luci-i18n-autoreboot-zh-cn",
-              "luci-theme-argon-mod",
           )
           for pkg in restored_luci:
               require(f"CONFIG_PACKAGE_{pkg}=y" in config,
@@ -783,7 +782,7 @@ jobs:
         # 中的 grep / tail / ccache，更不会影响后续 Actions 步骤。
         # 后台每 5 分钟输出一次心跳，便于区分“仍在编译”和“进程已经卡住”。
         set +e
-        LD_LIBRARY_PATH="$make_ld_library_path" make -j$(nproc) > build.log 2>&1 &
+        LD_LIBRARY_PATH="$make_ld_library_path" make -j$(nproc) V=s > build.log 2>&1 &
         build_pid=$!
 
         (
@@ -991,7 +990,6 @@ jobs:
           luci-app-upnp
           luci-app-autoreboot
           luci-i18n-autoreboot-zh-cn
-          luci-theme-argon-mod
           ngrokc
           luci-app-ngrokc
           frpc

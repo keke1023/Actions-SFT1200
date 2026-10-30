@@ -789,13 +789,8 @@ tar -C "$legacy_packages_tmp" -xzf "$legacy_packages_archive"
 legacy_packages_src="$(find "$legacy_packages_tmp" -mindepth 1 -maxdepth 1 -type d -print -quit)"
 [ -n "$legacy_packages_src" ] || die "OpenWrt 18.06 兼容包源码解压失败"
 
-replace_dir "$legacy_packages_src/luci-theme-argon-mod" package/luci-theme-argon-mod
 rm -rf "$legacy_packages_tmp"
 
-for makefile in \
-  package/luci-theme-argon-mod/Makefile; do
-  sed -i '/luci\.mk$/c\include $(TOPDIR)/feeds/luci/luci.mk' "$makefile"
-done
 record_fixed_upstream upstream_legacy_packages_1806_commit "$LEGACY_PACKAGES_1806_COMMIT"
 
 
@@ -939,7 +934,6 @@ for symbol in \
   PACKAGE_miniupnpd \
   PACKAGE_luci-app-autoreboot \
   PACKAGE_luci-i18n-autoreboot-zh-cn \
-  PACKAGE_luci-theme-argon-mod \
   PACKAGE_ngrokc \
   PACKAGE_luci-app-ngrokc \
   PACKAGE_dnsmasq-full \
@@ -971,7 +965,6 @@ required_symbols=(
   PACKAGE_miniupnpd
   PACKAGE_luci-app-autoreboot
   PACKAGE_luci-i18n-autoreboot-zh-cn
-  PACKAGE_luci-theme-argon-mod
   PACKAGE_ngrokc
   PACKAGE_luci-app-ngrokc
   PACKAGE_dnsmasq-full
